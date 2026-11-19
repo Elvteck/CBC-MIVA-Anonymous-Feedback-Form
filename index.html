@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Builder Club Miva Feedback Box</title>
+<meta name="description" content="Send suggestions, criticism and ideas to Claude Builder Club Miva without your name attached.">
+<style>
+/* Layout idea: one quiet column of form on warm paper, with a navy "privacy slip" beside it; a four-colour band up top ties the two palettes together. */
+:root {
+  --paper: #F7F3EA;        /* Claude warm ivory */
+  --surface: #FFFDF8;
+  --ink: #09314F;          /* Miva navy */
+  --ink-soft: #4A6274;
+  --line: #DDD5C4;
+  --clay: #D97757;         /* Claude clay */
+  --clay-deep: #B4532F;
+  --red: #E43B31;          /* Miva red */
+  --sky: #38BDF8;          /* Miva sky */
+  --slip-bg: #09314F;
+  --slip-ink: #F2EEE4;
+  --slip-soft: #A9C0D0;
+  --btn-bg: #09314F;
+  --btn-ink: #FFFDF8;
+  --ok: #1E7A4F;
+  --bad: #B3261E;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #061F33; --surface: #0B2C46; --ink: #F2EEE4; --ink-soft: #A9C0D0;
+    --line: #1D4666; --clay: #E28B6D; --clay-deep: #F0A489; --red: #F0635A; --sky: #5CCBFA;
+    --slip-bg: #F2EEE4; --slip-ink: #09314F; --slip-soft: #4A6274;
+    --btn-bg: #E28B6D; --btn-ink: #061F33; --ok: #6FD3A2; --bad: #FF8A80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #061F33; --surface: #0B2C46; --ink: #F2EEE4; --ink-soft: #A9C0D0;
+  --line: #1D4666; --clay: #E28B6D; --clay-deep: #F0A489; --red: #F0635A; --sky: #5CCBFA;
+  --slip-bg: #F2EEE4; --slip-ink: #09314F; --slip-soft: #4A6274;
+  --btn-bg: #E28B6D; --btn-ink: #061F33; --ok: #6FD3A2; --bad: #FF8A80;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.55;
+}
+.band { display: grid; grid-template-columns: 5fr 2fr 2fr 1fr; height: 8px; }
+.band span:nth-child(1) { background: var(--clay); }
+.band span:nth-child(2) { background: var(--red); }
+.band span:nth-child(3) { background: #09314F; }
+.band span:nth-child(4) { background: var(--sky); }
+
+.wrap { max-width: 1040px; margin: 0 auto; padding: 28px 20px 56px; display: flex; flex-direction: column; gap: 36px; }
+
+.club { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: 0.01em; font-size: 15px; }
+.club .dot { flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--clay); box-shadow: 8px 0 0 var(--red); margin-right: 8px; }
+.club small { font-weight: 500; color: var(--ink-soft); font-size: 15px; }
+
+.intro { display: flex; flex-direction: column; gap: 14px; max-width: 34em; }
+h1 {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: clamp(2rem, 5.2vw, 3.1rem); line-height: 1.08; letter-spacing: -0.015em;
+  margin: 0; text-wrap: balance;
+}
+h1 em { font-style: italic; color: var(--clay-deep); }
+.intro p { margin: 0; color: var(--ink-soft); font-size: 1.08rem; }
+
+.grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 26px; }
+@media (max-width: 480px) { .card { padding: 20px 16px; } }
+
+form { display: flex; flex-direction: column; gap: 24px; }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+legend, .label { font-weight: 600; font-size: 0.98rem; padding: 0; margin-bottom: 10px; }
+.field { display: flex; flex-direction: column; }
+.field .label { margin-bottom: 8px; }
+.optional { font-weight: 400; color: var(--ink-soft); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips input { position: absolute; opacity: 0; pointer-events: none; }
+.chips label {
+  display: inline-block; padding: 8px 14px; border: 1.5px solid var(--line); border-radius: 999px;
+  cursor: pointer; font-weight: 500; font-size: 0.95rem; background: var(--paper);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.chips label:hover { border-color: var(--clay); }
+.chips input:checked + label { background: var(--clay); border-color: var(--clay); color: #2A130A; font-weight: 600; }
+.chips input:focus-visible + label { outline: 3px solid var(--sky); outline-offset: 2px; }
+
+select, textarea {
+  width: 100%; font: inherit; color: var(--ink); background: var(--paper);
+  border: 1.5px solid var(--line); border-radius: 10px; padding: 12px 14px;
+}
+textarea { min-height: 190px; resize: vertical; line-height: 1.5; }
+select:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+textarea::placeholder { color: var(--ink-soft); opacity: 0.8; }
+.under { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; font-size: 0.86rem; color: var(--ink-soft); }
+.count { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+button {
+  font: inherit; font-weight: 700; cursor: pointer; border: 0; border-radius: 10px;
+  padding: 13px 22px; background: var(--btn-bg); color: var(--btn-ink);
+  transition: transform 0.1s, opacity 0.15s;
+}
+button:hover { opacity: 0.92; }
+button:active { transform: translateY(1px); }
+button[disabled] { opacity: 0.55; cursor: progress; }
+button.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+.actions small { color: var(--ink-soft); font-size: 0.88rem; }
+
+.status { margin: 0; padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; border-left: 4px solid var(--bad); background: var(--paper); color: var(--ink); }
+.status[hidden] { display: none; }
+.status strong { color: var(--bad); }
+
+.done { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+.done[hidden] { display: none; }
+.done h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.7rem; line-height: 1.15; margin: 0; }
+.done p { margin: 0; color: var(--ink-soft); }
+.tick { width: 44px; height: 44px; border-radius: 50%; background: var(--ok); color: var(--surface); display: grid; place-items: center; font-size: 22px; font-weight: 700; }
+
+.slip { background: var(--slip-bg); color: var(--slip-ink); border-radius: 14px; padding: 26px; display: flex; flex-direction: column; gap: 20px; }
+.slip h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.35rem; line-height: 1.2; margin: 0; text-wrap: balance; }
+.slip ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.slip li { padding-left: 18px; border-left: 3px solid var(--clay); font-size: 0.96rem; }
+.slip li:nth-child(2) { border-color: var(--red); }
+.slip li:nth-child(3) { border-color: var(--sky); }
+.slip li b { display: block; }
+.slip li span { color: var(--slip-soft); }
+.slip .tip { margin: 0; padding-top: 18px; border-top: 1px solid color-mix(in srgb, var(--slip-soft) 45%, transparent); font-size: 0.92rem; color: var(--slip-soft); }
+.slip .tip b { color: var(--slip-ink); }
+
+.topbar {
+  position: sticky; top: 0; z-index: 20; margin-top: -14px; padding: 14px 0;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px;
+  background: var(--paper); border-bottom: 1px solid var(--line);
+}
+.jump { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.jump a {
+  color: var(--ink); font-weight: 600; font-size: 0.92rem; text-decoration: none; border-radius: 4px;
+  padding: 4px 0; border-bottom: 2px solid transparent; transition: border-color 0.15s;
+}
+.jump a:hover { border-bottom-color: var(--clay); }
+#send-feedback, #how-it-works, #about-club { scroll-margin-top: 110px; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+.how { display: flex; flex-direction: column; gap: 20px; }
+.how > h2, .closing h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.7rem; line-height: 1.15; margin: 0; text-wrap: balance; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 800px) { .steps { grid-template-columns: 1fr; } }
+.step {
+  display: flex; flex-direction: column; gap: 8px; padding: 22px;
+  background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--clay); border-radius: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.step:nth-child(2) { border-top-color: var(--red); }
+.step:nth-child(3) { border-top-color: var(--sky); }
+.step:hover { transform: translateY(-4px); box-shadow: 0 12px 26px rgba(9, 49, 79, 0.14); }
+.step .n { font-family: var(--font-display); font-weight: 600; font-size: 2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.step h3 { margin: 0; font-size: 1.08rem; }
+.step p { margin: 0; color: var(--ink-soft); font-size: 0.96rem; }
+
+.closing {
+  background: var(--slip-bg); color: var(--slip-ink); border-radius: 14px; padding: 36px 28px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 14px;
+}
+.closing p { margin: 0; color: var(--slip-soft); max-width: 34em; }
+.btn-link {
+  display: inline-block; margin-top: 6px; padding: 13px 22px; border-radius: 10px;
+  background: var(--clay); color: #2A130A; font-weight: 700; text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+button:hover, .btn-link:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(9, 49, 79, 0.18); }
+button:active, .btn-link:active { transform: translateY(1px); box-shadow: none; }
+
+[data-reveal] { transition: opacity 0.6s ease, transform 0.6s ease; }
+[data-reveal].pre { opacity: 0; transform: translateY(18px); }
+
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.stat { display: flex; flex-direction: column; gap: 4px; padding: 18px 20px 18px 0; }
+.stat + .stat { padding-left: 20px; border-left: 1px solid var(--line); }
+.stat .num { font-family: var(--font-display); font-weight: 600; font-size: clamp(1.6rem, 4vw, 2.3rem); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat:nth-child(1) .num { color: var(--clay-deep); }
+.stat .cap { color: var(--ink-soft); font-size: 0.92rem; }
+@media (max-width: 560px) {
+  .stats { grid-template-columns: 1fr; }
+  .stat, .stat + .stat { display: grid; grid-template-columns: 7.4rem 1fr; align-items: baseline; gap: 12px; padding: 12px 0; border-left: 0; }
+  .stat + .stat { border-top: 1px solid var(--line); }
+  .stat .num { font-size: 1.5rem; white-space: nowrap; }
+}
+
+.about { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: start; scroll-margin-top: 16px; }
+@media (max-width: 800px) { .about { grid-template-columns: 1fr; } }
+.about-text { display: flex; flex-direction: column; gap: 14px; }
+.about h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.7rem; line-height: 1.15; margin: 0; }
+.about h3 { font-size: 0.98rem; font-weight: 700; margin: 0; }
+.about p { margin: 0; color: var(--ink-soft); max-width: 34em; }
+.facts { margin: 6px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 18px; font-size: 0.96rem; }
+.facts dt { color: var(--ink-soft); }
+.facts dd { margin: 0; font-weight: 600; }
+.crowd-box { display: flex; flex-direction: column; gap: 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+.crowd { display: flex; flex-wrap: wrap; gap: 8px; min-height: 22px; }
+.dot { width: 16px; height: 16px; border-radius: 50%; background: var(--line); transform: scale(0.55); transition: transform 0.25s cubic-bezier(.3,1.6,.5,1), background 0.2s; }
+.dot.on { background: var(--clay); transform: scale(1); }
+.dot.on:nth-child(5n) { background: var(--red); }
+.dot.on:nth-child(7n) { background: var(--sky); }
+.dot.on:nth-child(11n) { background: var(--ink); }
+.crowd-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.crowd-line p { font-size: 0.95rem; }
+.crowd-line b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.crowd-line button { padding: 8px 14px; font-size: 0.9rem; }
+
+footer { color: var(--ink-soft); font-size: 0.86rem; border-top: 1px solid var(--line); padding-top: 18px; }
+
+@media (max-width: 600px) {
+  body { font-size: 16px; }
+  .wrap { padding: 20px 18px 44px; gap: 30px; }
+  .club .wide { display: none; }
+  .topbar { margin-top: -10px; padding: 10px 0 8px; gap: 6px; }
+  .jump { width: 100%; flex-wrap: nowrap; justify-content: space-between; gap: 0; }
+  .jump a { font-size: 0.86rem; white-space: nowrap; }
+  #send-feedback, #how-it-works, #about-club { scroll-margin-top: 92px; }
+  .slip, .closing { padding: 22px 18px; }
+  .about { gap: 24px; }
+  .dot { width: 13px; height: 13px; }
+  .crowd { gap: 6px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="band" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="club">
+      <span class="dot" aria-hidden="true"></span>
+      <span>Claude Builder Club <small>Miva<span class="wide"> Open University</span></small></span>
+    </div>
+    <nav class="jump" aria-label="On this page">
+      <a href="#send-feedback">Send feedback</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#about-club">About the club</a>
+    </nav>
+  </header>
+
+  <section class="intro">
+    <h1>Tell the club what you really think. <em>No name attached.</em></h1>
+    <p><strong>Your suggestions will help improve the club.</strong> Send a suggestion, a criticism, an idea or praise. It goes straight to the club inbox and the growth lead, and nothing on this page records who wrote it.</p>
+  </section>
+
+  <section class="stats" aria-label="The club at a glance">
+    <div class="stat"><span class="num" id="stat-attended">0</span><span class="cap">members at our first meeting</span></div>
+    <div class="stat"><span class="num" id="stat-started">&nbsp;</span><span class="cap">when the club started</span></div>
+    <div class="stat"><span class="num" id="stat-months">0</span><span class="cap" id="cap-months">months of building together</span></div>
+  </section>
+
+  <div class="grid" id="send-feedback">
+    <main class="card">
+      <form id="feedback-form" novalidate>
+        <fieldset>
+          <legend>What kind of message is this?</legend>
+          <div class="chips">
+            <input type="radio" name="kind" id="kind-suggestion" value="Suggestion" checked><label for="kind-suggestion">Suggestion</label>
+            <input type="radio" name="kind" id="kind-criticism" value="Criticism"><label for="kind-criticism">Criticism</label>
+            <input type="radio" name="kind" id="kind-idea" value="Idea"><label for="kind-idea">Idea</label>
+            <input type="radio" name="kind" id="kind-appreciation" value="Appreciation"><label for="kind-appreciation">Appreciation</label>
+            <input type="radio" name="kind" id="kind-other" value="Something else"><label for="kind-other">Something else</label>
+          </div>
+        </fieldset>
+
+        <div class="field">
+          <label class="label" for="about">What is it about? <span class="optional">(optional)</span></label>
+          <select id="about" name="about">
+            <option value="">Pick an area, or skip</option>
+            <option>Sessions and workshops</option>
+            <option>Build projects and hackathons</option>
+            <option>Club leadership</option>
+            <option>Communication and announcements</option>
+            <option>Community and inclusion</option>
+            <option>Something else</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="message">Your message</label>
+          <textarea id="message" name="message" maxlength="2000" placeholder="Say it as plainly as you like. What happened, what should change, or what should we try?"></textarea>
+          <div class="under">
+            <span>Leave out your name, cohort and anything else that points to you.</span>
+            <span class="count" id="count">0 / 2000</span>
+          </div>
+        </div>
+
+        <div class="hp" aria-hidden="true">
+          <label for="website">Leave this empty</label>
+          <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+
+        <p class="status" id="status" role="alert" hidden></p>
+
+        <div class="actions">
+          <button type="submit" id="send">Send anonymously</button>
+          <small>No sign-in. No name. No email.</small>
+        </div>
+      </form>
+
+      <div class="done" id="done" hidden tabindex="-1">
+        <div class="tick" aria-hidden="true">✓</div>
+        <h2>Sent. Thank you for speaking up.</h2>
+        <p>Your message is with the club inbox and the growth lead. Because it is anonymous, nobody can reply to you directly, so watch club announcements for what changes.</p>
+        <button type="button" class="ghost" id="again">Send another message</button>
+      </div>
+    </main>
+
+    <aside class="slip" aria-labelledby="slip-title">
+      <h2 id="slip-title">How this stays anonymous</h2>
+      <ul>
+        <li><b>Nothing asks who you are.</b><span>There is no sign-in, name or email field, and the page keeps no draft on your device.</span></li>
+        <li><b>Only your words are sent.</b><span>The email the club receives holds the message type, the area and your text.</span></li>
+      </ul>
+      <p class="tip"><b>One caution.</b> In a small club, a very specific story or a familiar turn of phrase can give you away. Write about the issue, and keep personal details out.</p>
+    </aside>
+  </div>
+
+  <section class="how" id="how-it-works" aria-labelledby="how-title" data-reveal>
+    <h2 id="how-title">How it works</h2>
+    <ol class="steps">
+      <li class="step">
+        <span class="n" aria-hidden="true">01</span>
+        <h3>Write it</h3>
+        <p>Say what you think in your own words. There is no sign-in, and nothing asks for your name or email.</p>
+      </li>
+      <li class="step">
+        <span class="n" aria-hidden="true">02</span>
+        <h3>Send it</h3>
+        <p>Your message goes to the club inbox and the growth lead. Nothing identifying you travels with it.</p>
+      </li>
+      <li class="step">
+        <span class="n" aria-hidden="true">03</span>
+        <h3>The club acts</h3>
+        <p>The growth lead brings it to the leadership team. Watch club announcements to see what changes.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section class="card about" id="about-club" aria-labelledby="about-title" data-reveal>
+    <div class="about-text">
+      <h2 id="about-title">About the club</h2>
+      <p>Claude Builder Club Miva is a student community at Miva Open University for people who want to build with Claude. We meet to learn, try ideas, and turn them into working projects, whatever course you study.</p>
+      <p>The club belongs to its members. What you send through this page shapes our sessions, our projects and how we run things.</p>
+      <dl class="facts">
+        <dt>Started</dt><dd id="fact-started"></dd>
+        <dt>First meeting</dt><dd>120+ members attended</dd>
+        <dt>Home</dt><dd>Miva Open University</dd>
+      </dl>
+    </div>
+    <div class="crowd-box">
+      <h3>Our first meeting, a dot for every member</h3>
+      <div class="crowd" id="crowd" aria-hidden="true"></div>
+      <div class="crowd-line">
+        <p><b id="crowd-count">0</b> members showed up.</p>
+        <button type="button" class="ghost" id="replay">Play again</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="closing" aria-labelledby="closing-title" data-reveal>
+    <h2 id="closing-title">Something on your mind? Say it.</h2>
+    <p>Your suggestions will help improve the club. It takes a minute, and nobody will know it was you.</p>
+    <a class="btn-link" id="closing-link" href="#send-feedback">Send feedback anonymously</a>
+  </section>
+
+  <footer>Claude Builder Club Miva is a student club at Miva Open University. Criticism is welcome here; attacks on individual members are not.</footer>
+</div>
+
+<script>
+/* ---------------------------------------------------------------
+   SETUP: paste your Web3Forms access keys here.
+   One key per receiving inbox (get each at https://web3forms.com
+   by entering that inbox's email address).
+   --------------------------------------------------------------- */
+const CONFIG = {
+  accessKeys: [
+    "PASTE_CLUB_INBOX_KEY_HERE",
+    "PASTE_GROWTH_LEAD_KEY_HERE"
+  ],
+  endpoint: "https://api.web3forms.com/submit",
+  clubName: "Claude Builder Club Miva",
+  minLength: 10,
+  cooldownSeconds: 30
+};
+
+/* ---------------------------------------------------------------
+   CLUB FACTS: the month the club started (YEAR-MONTH) and how
+   many members came to the first meeting.
+   --------------------------------------------------------------- */
+const CLUB = {
+  started: "2026-09",
+  firstMeetingAttendance: 120
+};
+
+(function clubFacts() {
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const [startYear, startMonth] = CLUB.started.split("-").map(Number);
+  const started = new Date(startYear, startMonth - 1, 1);
+  const now = new Date();
+  const months = Math.max(0, (now.getFullYear() - startYear) * 12 + (now.getMonth() + 1 - startMonth));
+  const total = CLUB.firstMeetingAttendance;
+
+  document.getElementById("stat-started").textContent = started.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
+  document.getElementById("fact-started").textContent = started.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  document.getElementById("cap-months").textContent = (months === 1 ? "month" : "months") + " of building together";
+
+  // Numbers count up once on load.
+  function countUp(el, target, suffix = "") {
+    const t0 = performance.now(), dur = 2200;
+    (function step(now) {
+      const p = Math.min(1, (now - t0) / dur);
+      el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3))) + (p < 1 ? "" : suffix);
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+  // Start counting when the numbers are actually on screen, so nobody misses it.
+  const attendedEl = document.getElementById("stat-attended");
+  const monthsEl = document.getElementById("stat-months");
+  const startCounts = () => { countUp(attendedEl, total, "+"); countUp(monthsEl, months); };
+  if ("IntersectionObserver" in window) {
+    const statsIO = new IntersectionObserver(entries => {
+      if (entries.some(e => e.isIntersecting)) { startCounts(); statsIO.disconnect(); }
+    }, { threshold: 0.6 });
+    statsIO.observe(attendedEl);
+  } else { startCounts(); }
+
+  // The crowd: one dot per member, filling in one by one.
+  const crowd = document.getElementById("crowd");
+  const crowdCount = document.getElementById("crowd-count");
+  const dots = [];
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement("span");
+    d.className = "dot on";
+    crowd.appendChild(d);
+    dots.push(d);
+  }
+  crowdCount.textContent = total + "+";
+  let timers = [];
+  function play() {
+    timers.forEach(clearTimeout); timers = [];
+    dots.forEach(d => d.classList.remove("on"));
+    crowdCount.textContent = 0;
+    const gap = Math.max(18, Math.min(70, 2600 / total));
+    dots.forEach((d, i) => timers.push(setTimeout(() => {
+      d.classList.add("on");
+      crowdCount.textContent = (i + 1) + (i + 1 === total ? "+" : "");
+    }, 250 + i * gap)));
+  }
+  document.getElementById("replay").addEventListener("click", play);
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(entries => {
+      if (entries.some(e => e.isIntersecting)) { play(); io.disconnect(); }
+    }, { threshold: 0.4 });
+    io.observe(crowd);
+  }
+})();
+
+// Sections below the first screen ease in as they are scrolled to.
+(function reveal() {
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce || !("IntersectionObserver" in window)) return;
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.remove("pre"); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll("[data-reveal]").forEach(el => {
+    if (el.getBoundingClientRect().top > window.innerHeight) { el.classList.add("pre"); io.observe(el); }
+  });
+})();
+
+// The closing button returns to the form and puts the cursor in the message box.
+document.getElementById("closing-link").addEventListener("click", () => {
+  setTimeout(() => { if (!form.hidden) message.focus({ preventScroll: true }); }, 700);
+});
+
+const form = document.getElementById("feedback-form");
+const message = document.getElementById("message");
+const count = document.getElementById("count");
+const statusBox = document.getElementById("status");
+const sendBtn = document.getElementById("send");
+const done = document.getElementById("done");
+let lastSentAt = 0;
+
+function showStatus(title, text) {
+  statusBox.innerHTML = "";
+  const strong = document.createElement("strong");
+  strong.textContent = title + " ";
+  statusBox.append(strong, document.createTextNode(text));
+  statusBox.hidden = false;
+}
+function clearStatus() { statusBox.hidden = true; }
+
+message.addEventListener("input", () => {
+  count.textContent = message.value.length + " / 2000";
+  if (!statusBox.hidden) clearStatus();
+});
+
+async function deliver(key, payload) {
+  const res = await fetch(CONFIG.endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    body: JSON.stringify({ access_key: key, ...payload })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.success !== true) throw new Error(data.message || "Delivery failed");
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  clearStatus();
+
+  const text = message.value.trim();
+  if (text.length < CONFIG.minLength) {
+    showStatus("Add a little more.", "Write at least " + CONFIG.minLength + " characters so the club can act on it.");
+    message.focus();
+    return;
+  }
+
+  // Bots fill hidden fields. Pretend it worked and send nothing.
+  if (document.getElementById("website").value !== "") { finish(); return; }
+
+  const keys = CONFIG.accessKeys.filter(k => k && !k.startsWith("PASTE_"));
+  if (keys.length === 0) {
+    showStatus("Not connected to email yet.", "Nothing was sent. The club still needs to add its access keys to this page.");
+    return;
+  }
+
+  const wait = Math.ceil(CONFIG.cooldownSeconds - (Date.now() - lastSentAt) / 1000);
+  if (wait > 0) {
+    showStatus("One moment.", "You can send another message in " + wait + " seconds.");
+    return;
+  }
+
+  const kind = form.elements.kind.value;
+  const payload = {
+    subject: "[Anonymous " + kind.toLowerCase() + "] " + CONFIG.clubName,
+    from_name: CONFIG.clubName + " Feedback Box",
+    Type: kind,
+    About: form.elements.about.value || "Not specified",
+    Message: text,
+    botcheck: ""
+  };
+
+  sendBtn.disabled = true;
+  sendBtn.textContent = "Sending…";
+  const results = await Promise.allSettled(keys.map(k => deliver(k, payload)));
+  sendBtn.disabled = false;
+  sendBtn.textContent = "Send anonymously";
+
+  if (results.some(r => r.status === "fulfilled")) {
+    lastSentAt = Date.now();
+    finish();
+  } else {
+    showStatus("That didn't send.", "Check your connection and try again. Your message is still in the box.");
+  }
+});
+
+function finish() {
+  form.reset();
+  count.textContent = "0 / 2000";
+  form.hidden = true;
+  done.hidden = false;
+  done.focus();
+}
+
+document.getElementById("again").addEventListener("click", () => {
+  done.hidden = true;
+  form.hidden = false;
+  message.focus();
+});
+</script>
+</body>
+</html>
